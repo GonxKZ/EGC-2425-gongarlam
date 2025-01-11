@@ -117,3 +117,32 @@ def test_service_create_with_profile_fail_no_password(clean_database):
 
     assert UserRepository().count() == 0
     assert UserProfileRepository().count() == 0
+
+def test_user_count_increases_after_registration(client, db_session):
+    initial_count = db_session.query(User).count()
+    response = client.post('/register', json={
+        
+        "name": "Test",
+        "surname": "Foo",
+        "email": "service_test@example.com",
+        "password": "test1234"
+        
+    })
+    
+    assert response.status_code == 201
+    new_count = db_session.query(User).count()
+    assert new_count == initial_count + 1
+    
+def test_login_fails_with_empty_fields(client):
+    
+    response = client.post('/login', json={
+        
+        "name": "",
+        "surname": "",
+        "email": "",
+        "password": ""
+        
+    })
+    
+    assert response.status_code == 400
+    assert 'fields cannot be empty' in response.json['message']
